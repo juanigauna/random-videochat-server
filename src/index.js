@@ -84,6 +84,7 @@ server.on('connection', socket => {
         if (room.client.socketId === socket.id) {
             // Sí somos los creadores, vamos a validar sí estamos en una charla
             if (room.onChatting) {
+                socket.to(room.candidate.socketId).emit('waiting-again')
                 /* 
                     Sí estamos charlando y nos desconectamos vamos a sederle la propiedad de la sala
                     al candidato y la dejamos en el estado inicial para que otro pueda unirse.
@@ -102,6 +103,7 @@ server.on('connection', socket => {
                 Sinó somos los creadores y abandonamos la sala, entonces vamos a dejar la sala
                 en el estado inical para que otro pueda unirse.
             */
+            socket.to(room.client.socketId).emit('waiting-again')
             rooms[room.id].candidate = null
             rooms[room.id].onChatting = false
         }
