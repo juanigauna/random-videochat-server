@@ -11,11 +11,11 @@ const server = new Server(process.env.PORT || 3005, {
 const clients = {}
 const rooms = {}
 
-const findRoomByAvailability = () => {
+const findRoomByAvailability = ({ skipId }) => {
     const arrayRooms = Object.values(rooms)
     if (arrayRooms.length === 0) return false
 
-    const room = arrayRooms.find(room => !room.onChatting) || false
+    const room = arrayRooms.find(room => !room.onChatting && room.id !== skipId) || false
 
     return room
 }
@@ -45,7 +45,8 @@ server.on('connection', socket => {
         // Se registra la conexión peer en un diccionario para facilitar el acceso
         clients[socket.id] = {
             socketId: socket.id,
-            peerId: data.id
+            peerId: data.id,
+            skipId: null
         }
 
         // Se emite un evento al cliente avisando que se ha registrado el id de la conexión peer
@@ -57,7 +58,7 @@ server.on('connection', socket => {
     })
 
     socket.on('search', () => {
-        const room = findRoomByAvailability()
+        const room = findRoomByAvailability({ skipId: clients[socket.id].skipId })
 
         if (!room) {
             addNewRoom(clients[socket.id])
@@ -78,6 +79,7 @@ server.on('connection', socket => {
 
         if (!room) return
 
+        clients[socket.id].skipId = room.id
         // Vamos a validar sí somos los creadores de la sala
         if (room.client.socketId === socket.id) {
             // Sí somos los creadores, vamos a validar sí estamos en una charla
