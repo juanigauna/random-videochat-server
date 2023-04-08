@@ -23,7 +23,7 @@ const findRoomByAvailability = ({ skipId }) => {
 const findRoomByClient = (client) => {
     const arrayRooms = Object.values(rooms)
 
-    const room = arrayRooms.find(room => room.client?.socketId === client.socketId || room.candidate?.socketId === client.socketId)
+    const room = arrayRooms.find(room => room.client.socketId === client?.socketId || room.candidate?.socketId === client?.socketId)
 
     return room
 }
@@ -77,7 +77,10 @@ server.on('connection', socket => {
     socket.on('skip', () => {
         const room = findRoomByClient(clients[socket.id])
 
-        if (!room) return
+        if (!room) {
+            socket.emit('skip-ready')
+            return
+        }
 
         clients[socket.id].skipId = room.id
         // Vamos a validar sí somos los creadores de la sala
@@ -118,7 +121,10 @@ server.on('connection', socket => {
         */
         const room = findRoomByClient(clients[socket.id])
 
-        if (!room) return
+        if (!room) {
+            delete clients[socket.id]
+            return
+        }
 
         // Vamos a validar sí somos los creadores de la sala
         if (room.client.socketId === socket.id) {
@@ -147,5 +153,7 @@ server.on('connection', socket => {
             rooms[room.id].candidate = null
             rooms[room.id].onChatting = false
         }
+
+        delete clients[socket.id]
     })
 })
