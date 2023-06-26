@@ -56,6 +56,9 @@ server.on('connection', socket => {
     socket.on('message', data => {
         socket.to(data.callSocketId).emit('message', data)
     })
+    socket.on('media:switch', data => {
+        socket.to(data.callSocketId).emit('media:switch', data.media)
+    })
 
     socket.on('search', () => {
         const room = findRoomByAvailability({ skipId: clients[socket.id].skipId })
